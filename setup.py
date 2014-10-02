@@ -9,11 +9,11 @@ install_requires = [
 
 setup(
     name='dynamodb_beaker',
-    version='0.1',
+    version='0.1.1',
     description='DynamoDB backend for Beaker',
     author='xica development team',
     author_email='info@xica.net',
-    url='https://github.com/xica/djehuty',
+    url='https://github.com/xica/dynamodb-beaker',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
