@@ -13,7 +13,7 @@ setup(
     description='DynamoDB backend for Beaker',
     author='xica development team',
     author_email='info@xica.net',
-    url='https://github.com/xica/djehuty',
+    url='https://github.com/xica/dynamodb-beaker',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
