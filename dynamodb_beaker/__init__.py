@@ -1,12 +1,44 @@
+import types
+
 from beaker.container import OpenResourceNamespaceManager, Container
 from beaker.exceptions import InvalidCacheBackendError, MissingCacheParameter
 from beaker.synchronization import null_synchronizer
+from beaker.util import verify_rules
 
 ddb = None
 ItemNotFound = None
 
 
 class DynamoDBNamespaceManager(OpenResourceNamespaceManager):
+
+    _supported_options = [
+        'host', 'aws_access_key_id', 'aws_secret_access_key', 'security_token',
+        'is_secure', 'https_connection_factory', 'proxy', 'proxy_port',
+        'proxy_user', 'proxy_pass', 'port', 'validate_certs', 'profile_name',
+        'debug', 'path']
+
+    _rules = [
+        ('host', (str, types.NoneType), "host must be a string"),
+        ('aws_access_key_id', (str, types.NoneType), "aws_access_key_id must be a "
+         "string"),
+        ('aws_secret_access_key', (str, types.NoneType), "aws_secret_access_key "
+         "must be a string"),
+        ('security_token', (str, types.NoneType), "security_token must be a "
+         "string"),
+        ('is_secure', (bool, types.NoneType), "is_secure must be true/false"),
+        ('https_connection_factory', (list, tuple, types.NoneType),
+         "https_connection_factory must comma seperated list of valid factories"),
+        ('proxy', (str, types.NoneType), "proxy must be a string"),
+        ('proxy_port', (int, types.NoneType), "proxy_port must be an integer"),
+        ('proxy_user', (str, types.NoneType), "proxy_user must be a string"),
+        ('proxy_pass', (str, types.NoneType), "proxy_pass must be a string"),
+        ('port', (int, types.NoneType), "port must be an integer"),
+        ('validate_certs', (bool, types.NoneType), "validate_certs must be "
+         "true/false"),
+        ('profile_name', (str, types.NoneType), "profile_name must be a string"),
+        ('debug', (int, types.NoneType), "debug must be an integer"),
+        ('path', (str, types.NoneType), "path must be a string"),
+    ]
 
     @classmethod
     def _init_dependencies(cls):
@@ -26,8 +58,14 @@ class DynamoDBNamespaceManager(OpenResourceNamespaceManager):
         if table_name is None:
             raise MissingCacheParameter('DynamoDB table name required.')
 
+        options = verify_rules(
+            dict([(k, v) for k, v in params.iteritems()
+                  if k in self._supported_options]),
+            self._rules)
+
         self._hash_key = hash_key
-        self._table = ddb.table.Table(table_name, connection=ddb.connect_to_region(region))
+        self._table = ddb.table.Table(
+            table_name, connection=ddb.connect_to_region(region, **options))
         self._flags = None
         self._item = None
 
