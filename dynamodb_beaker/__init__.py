@@ -47,6 +47,7 @@ class DynamoDBNamespaceManager(OpenResourceNamespaceManager):
             return
         try:
             import boto.dynamodb2 as ddb
+            import boto.dynamodb2.table  # necessary for calling ddb.table
             from boto.dynamodb2.exceptions import ItemNotFound
         except ImportError as e:
             raise InvalidCacheBackendError('DynamoDB cache backend requires boto.')
