@@ -42,13 +42,13 @@ class DynamoDBNamespaceManager(OpenResourceNamespaceManager):
 
     @classmethod
     def _init_dependencies(cls):
-        global ddb, ItemNotFound
+        global ddb, ItemNotFound, ConditionalCheckFailedException
         if ddb is not None:
             return
         try:
             import boto.dynamodb2 as ddb
             import boto.dynamodb2.table  # necessary for calling ddb.table
-            from boto.dynamodb2.exceptions import ItemNotFound
+            from boto.dynamodb2.exceptions import ItemNotFound, ConditionalCheckFailedException
         except ImportError as e:
             raise InvalidCacheBackendError('DynamoDB cache backend requires boto.')
 
@@ -94,8 +94,17 @@ class DynamoDBNamespaceManager(OpenResourceNamespaceManager):
 
     def do_close(self):
 
+        data, fields = self._item.prepare_partial()
+
         if self._flags == 'c' or self._flags == 'w':
-            self._item.partial_save()
+            try:
+                self._item.partial_save()
+            except ConditionalCheckFailedException as e:
+                # Since `partial_save()` performs a conditional write, this operation
+                # may fail due to concurrent requests. Here, we return gracefully if
+                # the session data was NOT actually modified.
+                if fields != {u'_accessed_time'}:
+                    raise
 
         self._flags = None
         self._item = None
