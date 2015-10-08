@@ -7,6 +7,7 @@ from beaker.util import verify_rules
 
 ddb = None
 ItemNotFound = None
+ConditionalCheckFailedException = None
 
 
 class DynamoDBNamespaceManager(OpenResourceNamespaceManager):
@@ -117,7 +118,15 @@ class DynamoDBNamespaceManager(OpenResourceNamespaceManager):
         if key in self._item:
             return self._item[key]
 
-        return self._item._data if key == 'session' and len(self._item._data) > 1 else None
+        if key == 'session' and len(self._item._data) > 1:
+            session_data = self._item._data.copy()
+            if '_creation_time' in session_data:
+                session_data['_creation_time'] = float(session_data['_creation_time'])
+            if '_accessed_time' in session_data:
+                session_data['_accessed_time'] = float(session_data['_accessed_time'])
+            return session_data
+        else:
+            return None
 
     def __setitem__(self, key, value):
         self.set_value(key, value)
