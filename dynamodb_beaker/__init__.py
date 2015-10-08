@@ -7,6 +7,7 @@ from beaker.util import verify_rules
 
 ddb = None
 ItemNotFound = None
+ConditionalCheckFailedException = None
 
 
 class DynamoDBNamespaceManager(OpenResourceNamespaceManager):
